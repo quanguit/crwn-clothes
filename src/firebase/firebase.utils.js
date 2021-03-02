@@ -4,14 +4,13 @@ import 'firebase/auth';
 
 
 var config = {
-    apiKey: "AIzaSyAIQm0So0JKUPHOXdbLluXyBoLFnutSr0k",
-    authDomain: "crwn-db-a85a0.firebaseapp.com",
-    databaseURL: "https://crwn-db-a85a0.firebaseio.com",
-    projectId: "crwn-db-a85a0",
-    storageBucket: "crwn-db-a85a0.appspot.com",
-    messagingSenderId: "550904705536",
-    appId: "1:550904705536:web:55d1562b92871748b21ee5",
-    measurementId: "G-XZN3V1CHM3"
+    apiKey: "AIzaSyBtVff75D_EaJDev_g4pxRMzjVJSzhyR6Q",
+    authDomain: "crwn-db2-c433c.firebaseapp.com",
+    projectId: "crwn-db2-c433c",
+    storageBucket: "crwn-db2-c433c.appspot.com",
+    messagingSenderId: "1066148447742",
+    appId: "1:1066148447742:web:2508d898fb8675575d6caf",
+    measurementId: "G-VZWLBEJC8Y"
 };
 
 export const createUserProfileDocument = async (userAuth, additionalData) => {
@@ -38,14 +37,56 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
     return userRef;
 }
 
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+    const collectionRef = firestore.collection(collectionKey);
+    // console.log(collectionRef);
+    
+    const batch = firestore.batch();
+    objectsToAdd.forEach(obj => {
+        const newDocRef = collectionRef.doc();
+        // console.log(newDocRef); (doc.title)
+        batch.set(newDocRef, obj);
+    });
+    return await batch.commit();
+};
+
+export const convertCollectionsSnapshotToMap = (collections) => {
+    const transformedCollection = collections.docs.map(docSnapshot => {
+        const {title, items} = docSnapshot.data();
+        // console.log(docSnapshot.data());
+        return {
+            routeName: encodeURI(title.toLowerCase()),
+            id: docSnapshot.id,
+            title,
+            items
+        }
+    });
+    // console.log(transformedCollection);
+
+    return transformedCollection.reduce((accumulator, collection) => {
+        accumulator[collection.title.toLowerCase()] = collection;
+        return accumulator;
+    }, {});
+}
+
 firebase.initializeApp(config);
 
+// check user session
+export const getCurrentUser = () => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(userAuth => {
+            unsubscribe();
+            resolve(userAuth);
+        }, reject)
+    })
+}
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
-const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
-export const signInWithGoogle = () => auth.signInWithPopup(provider);
+// google sign in
+export const googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+export const signInWithGoogle = () => auth.signInWithPopup(googleProvider);
 
 export default firebase; 

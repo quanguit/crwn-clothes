@@ -10,20 +10,32 @@ const COLLECTION_ID_MAP = {
 
 const selectShop = state => state.shop;
 
-
 export const selectCollections = createSelector(
     [selectShop],
     shop => shop.collections
 );
 
-export const selectCollectionForPreview = createSelector(
+export const selectCollectionsForPreview = createSelector(
     [selectCollections],
-    collections => Object.keys(collections).map(key => collections[key])
+    collections => collections ? Object.keys(collections).map(key => collections[key]) : []
 );
 
 // hàm chuyển id thành string (1 => hats)
-export const selectCollection = collectionUrlParam =>
-    createSelector(
-        [selectCollections],
-        collections => collections.find(collection => collection.id === COLLECTION_ID_MAP[collectionUrlParam])
-    );
+export const selectCollection = collectionUrlParam => createSelector(
+    [selectCollections],
+    collections => (collections ? collections[collectionUrlParam] : null)
+);
+
+export const selectIsCollectionFetching = createSelector(
+    [selectShop],
+    shop => shop.isFetching  
+);
+
+// biến đổi lấy giá trị boolean tại bth trả về object
+export const selectIsCollectionsLoaded = createSelector(
+    [selectShop],
+    shop => !!shop.collections
+    // mặc định ban đầu là false
+    // !!{} => true
+    // !!null hay gì đó => false
+);
